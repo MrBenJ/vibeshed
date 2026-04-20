@@ -10,9 +10,8 @@ sources for ``vibeshed new``, copied once and never tracked by the manifest.
 
 from __future__ import annotations
 
-from importlib.resources import as_file, files
-from pathlib import Path
-from typing import Dict, Iterator, Tuple
+from importlib.resources import files
+from typing import Any, Dict, Iterator, Tuple
 
 MANAGED_FILES: Dict[str, str] = {
     "AGENTS.md": "marker",
@@ -33,24 +32,43 @@ INIT_DIRECTORIES: Tuple[str, ...] = ("state", "logs", "jobs")
 JOB_TEMPLATE_ROOT = "job_template"
 
 
+def _templates_root() -> Any:
+    """Anchor on the ``vibeshed`` package and joinpath into ``templates/``.
+
+    ``templates`` is a plain directory (no ``__init__.py``), so we cannot pass
+    it directly to ``files()`` on Python 3.9. ``files("vibeshed").joinpath(...)``
+    works uniformly across 3.9–3.12.
+    """
+    return files("vibeshed").joinpath("templates")
+
+
 def template_text(rel_path: str) -> str:
     """Read a bundled template file as text."""
-    resource = files("vibeshed.templates").joinpath(rel_path)
-    return resource.read_text(encoding="utf-8")
+    return _resolve(rel_path).read_text(encoding="utf-8")
 
 
 def template_bytes(rel_path: str) -> bytes:
     """Read a bundled template file as bytes."""
-    resource = files("vibeshed.templates").joinpath(rel_path)
-    return resource.read_bytes()
+    return _resolve(rel_path).read_bytes()
 
 
 def iter_job_template_files() -> Iterator[Tuple[str, str]]:
     """Yield ``(relative_path, text)`` for every file under ``job_template/``."""
-    root = files("vibeshed.templates").joinpath(JOB_TEMPLATE_ROOT)
-    with as_file(root) as root_path:
-        root_path = Path(root_path)
-        for path in sorted(root_path.rglob("*")):
-            if path.is_file():
-                rel = path.relative_to(root_path).as_posix()
-                yield rel, path.read_text(encoding="utf-8")
+    root = _templates_root().joinpath(JOB_TEMPLATE_ROOT)
+    yield from _walk_files(root, prefix="")
+
+
+def _resolve(rel_path: str) -> Any:
+    node = _templates_root()
+    for part in rel_path.split("/"):
+        node = node.joinpath(part)
+    return node
+
+
+def _walk_files(node: Any, prefix: str) -> Iterator[Tuple[str, str]]:
+    for child in sorted(node.iterdir(), key=lambda c: c.name):
+        rel = f"{prefix}{child.name}"
+        if child.is_file():
+            yield rel, child.read_text(encoding="utf-8")
+        elif child.is_dir():
+            yield from _walk_files(child, prefix=f"{rel}/")
