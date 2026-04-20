@@ -1,0 +1,3 @@
+# Job configuration. See AGENTS.md for available fields.
+
+timeout_minutes: 5

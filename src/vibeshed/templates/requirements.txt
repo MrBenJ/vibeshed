@@ -1,0 +1,7 @@
+# vibeshed:managed:start v0.1.0
+# Baseline dependencies used by the shared/ utilities.
+requests>=2.31
+PyYAML>=6.0
+# vibeshed:managed:end
+
+# Add your project-specific dependencies below. They will be preserved across `vibeshed update`.

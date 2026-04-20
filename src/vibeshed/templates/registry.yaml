@@ -1,0 +1,24 @@
+version: "1.0"
+
+# Add jobs here. Each entry is keyed by its slug.
+#
+# Example:
+#
+# jobs:
+#   daily-briefing:
+#     slug: daily-briefing
+#     name: Daily Morning Briefing
+#     description: |
+#       Fetches calendar, weather, and tasks to generate a personalized
+#       morning summary.
+#     tags: morning, productivity, notifications
+#     dependencies:
+#       env_vars:
+#         - TODOIST_API_TOKEN
+#         - OPENWEATHER_API_KEY
+#       shared_utils:
+#         - logging
+#         - notifications
+#         - api_clients
+
+jobs: {}
