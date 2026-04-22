@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vibeshed"
-version = "0.1.0"
-description = "Vibe Coding Framework for Personal Automations — agent-agnostic CLI for Trigger → Action → Result jobs."
+version = "0.1.1"
+description = "Vibe Coding Framework for Personal Automations — agent-agnostic CLI for vibe-coded jobs with passthrough params, exit-code results, and enforced timeouts."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"

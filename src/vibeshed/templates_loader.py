@@ -16,6 +16,7 @@ from typing import Any, Dict, Iterator, Tuple
 MANAGED_FILES: Dict[str, str] = {
     "AGENTS.md": "marker",
     "CLAUDE.md": "marker",
+    "PRINCIPLES.md": "marker",
     ".gitignore": "marker",
     "requirements.txt": "marker",
     "shared/__init__.py": "full",

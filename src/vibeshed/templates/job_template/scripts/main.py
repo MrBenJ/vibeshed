@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
 """Entry point for {{JOB_SLUG}}.
 
-This script is invoked by ``vibeshed run {{JOB_SLUG}}``. It also runs directly
-with ``JOB_SLUG={{JOB_SLUG}} python jobs/{{JOB_SLUG}}/scripts/main.py``.
+Invoked by ``vibeshed run {{JOB_SLUG}} -- <params>``; everything after ``--``
+is forwarded here as ``sys.argv``. Also runs directly with
+``JOB_SLUG={{JOB_SLUG}} python jobs/{{JOB_SLUG}}/scripts/main.py <params>``.
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 
 from shared import logging
 
 
-def main() -> int:
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="{{JOB_SLUG}}")
+    # TODO: declare the params this job expects. Mirror them in sequence.md's Inputs section.
+    # parser.add_argument("--example", required=True, help="Describe me.")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
     logger = logging.get_logger(__name__)
-    logger.info("Starting {{JOB_SLUG}}")
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    logger.info("Starting {{JOB_SLUG}} with args=%s", vars(args))
 
     try:
         # TODO: implement the job's action here.
