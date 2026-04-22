@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -14,7 +13,11 @@ from typing import Optional
 import typer
 import yaml
 
-from vibeshed.commands._common import find_project_root, load_registry
+from vibeshed.commands._common import (
+    find_project_root,
+    load_registry,
+    resolve_python_interpreter,
+)
 
 DEFAULT_TIMEOUT_MINUTES = 5.0
 
@@ -78,7 +81,8 @@ def run(
     )
 
     typer.secho(f"▶ {slug} ({run_id})", fg=typer.colors.CYAN)
-    cmd = [sys.executable, str(main_script), *passthrough_args]
+    python = resolve_python_interpreter(project_root)
+    cmd = [python, str(main_script), *passthrough_args]
     start = time.monotonic()
     timed_out = False
     try:
