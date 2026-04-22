@@ -2,15 +2,18 @@
 
 [Briefly describe what this job does.]
 
-## Trigger
+## Inputs
 
-[Cron / on-demand / event / hybrid. Be specific — e.g. "every weekday at 8:00 AM".]
+- Params (passed after `--` on `vibeshed run {{JOB_SLUG}}`):
+  - `--example` (required) — [describe each param: type, purpose, example value].
+- Env vars:
+  - `EXAMPLE_API_KEY` — [describe; delete this block if none].
 
 ## Action
 
 ### Step 1: [Description]
 Run: `scripts/main.py`
-- Input: [None / stdin / args / env vars]
+- Input: [params / stdin / env / files]
 - Output: [What it produces]
 
 [Add more steps as needed. Each step references one script.]
@@ -25,4 +28,4 @@ Run: `scripts/main.py`
 
 ## Notes
 
-[Edge cases, special considerations, gotchas.]
+[Edge cases, special considerations, why the chosen `timeout_minutes` is right.]

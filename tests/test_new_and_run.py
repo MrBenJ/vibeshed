@@ -72,3 +72,46 @@ def test_run_unknown_slug(initialized_project: Path, runner: CliRunner) -> None:
     result = runner.invoke(app, ["run", "nope"])
     assert result.exit_code != 0
     assert "not registered" in result.output.lower()
+
+
+def test_run_forwards_passthrough_args(
+    initialized_project: Path, runner: CliRunner
+) -> None:
+    runner.invoke(app, ["new", "echo-args"])
+    main_script = initialized_project / "jobs" / "echo-args" / "scripts" / "main.py"
+    main_script.write_text(
+        "import sys\nprint('argv:' + '|'.join(sys.argv[1:]))\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app, ["run", "echo-args", "--", "--name", "ben", "--flag"]
+    )
+    assert result.exit_code == 0, result.output
+
+    log_files = list((initialized_project / "logs" / "echo-args").rglob("run_*.log"))
+    assert len(log_files) == 1
+    assert "argv:--name|ben|--flag" in log_files[0].read_text()
+
+
+def test_run_enforces_config_timeout(
+    initialized_project: Path, runner: CliRunner
+) -> None:
+    runner.invoke(app, ["new", "slow-job"])
+    config_path = initialized_project / "jobs" / "slow-job" / "config.yaml"
+    config_path.write_text("timeout_minutes: 0.02\n", encoding="utf-8")  # 1.2s
+    main_script = initialized_project / "jobs" / "slow-job" / "scripts" / "main.py"
+    main_script.write_text(
+        "import time\nprint('starting')\ntime.sleep(10)\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["run", "slow-job"])
+    assert result.exit_code != 0
+
+    runs = json.loads(
+        (initialized_project / "logs" / "slow-job" / "runs.json").read_text()
+    )
+    entry = next(iter(runs["runs"].values()))
+    assert entry["status"] == "FAILURE"
+    assert "timeout" in (entry["error"] or "").lower()

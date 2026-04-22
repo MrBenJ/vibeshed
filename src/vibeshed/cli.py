@@ -26,7 +26,10 @@ app.command("init")(init)
 app.command("update")(update)
 app.command("status")(status)
 app.command("new")(new)
-app.command("run")(run)
+app.command(
+    "run",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)(run)
 app.command("list")(list_jobs)
 app.command("validate")(validate)
 app.command("logs")(logs)

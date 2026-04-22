@@ -2,7 +2,7 @@
 
 A lightweight, agent-agnostic framework for building personal automations.
 
-Every automation in VibeShed is a **Trigger → Action → Result** flow, defined as a folder of plain files (`config.yaml`, `sequence.md`, `scripts/main.py`). Agents read those files to orchestrate work; the `vibeshed` CLI executes them so cron, CI, or any other trigger source can run jobs without an agent in the loop.
+VibeShed is for **vibe-coding automations** with an agent in the loop. Every job is a folder of plain files (`config.yaml`, `sequence.md`, `scripts/main.py`) that an agent can read, modify, and call. The `vibeshed` CLI runs those jobs so cron, CI, another agent, or a human can invoke them with the same interface.
 
 ## Install
 
@@ -17,9 +17,22 @@ vibeshed init my-automations
 cd my-automations
 vibeshed new daily-briefing
 # edit jobs/daily-briefing/scripts/main.py
-vibeshed run daily-briefing
+vibeshed run daily-briefing -- --date 2026-04-19
 vibeshed logs daily-briefing
 ```
+
+Everything after `--` is forwarded to `scripts/main.py`. Parse params with `argparse` (the template scaffolds this for you).
+
+## What it means to be one with the vibeshed
+
+Every job follows four rules. The long form lives in [`PRINCIPLES.md`](src/vibeshed/templates/PRINCIPLES.md) — scaffolded into every project at `PRINCIPLES.md`.
+
+1. **Scripts are simple and composable** — small python scripts that lean on `shared/` for logging, state, notifications, and API clients.
+2. **Params pass through the CLI** — `vibeshed run <slug> -- --key value` forwards everything after `--` to the script. No magic wrapper layer.
+3. **Success or failure, nothing in between** — scripts exit `0` on success, non-zero on failure. `logs/<slug>/runs.json` records the outcome.
+4. **Errors have a timeout** — `config.yaml`'s `timeout_minutes` is enforced by `vibeshed run`; hitting it is a FAILURE with `error: "timeout ..."`.
+
+Agents working in a VibeShed repo use these principles to guide users through vibe-coding new automations.
 
 ## Commands
 
@@ -27,7 +40,7 @@ vibeshed logs daily-briefing
 | --- | --- |
 | `vibeshed init [path]` | Scaffold a new automations repo. |
 | `vibeshed new <slug>` | Create a new job from the template. |
-| `vibeshed run <slug>` | Execute a job's `scripts/main.py` and record the run. |
+| `vibeshed run <slug> -- <params>` | Execute a job's `scripts/main.py` with passthrough args, enforce `timeout_minutes`, record the run. |
 | `vibeshed list` | List all registered jobs. |
 | `vibeshed validate` | Lint `registry.yaml` and job folder structure. |
 | `vibeshed status` | Show framework version and any drift in managed files. |
@@ -38,12 +51,12 @@ vibeshed logs daily-briefing
 
 ## How updates work
 
-Files like `shared/`, `AGENTS.md`, and `CLAUDE.md` are **framework-managed**. VibeShed records their original SHAs in `.vibeshed/manifest.json` so `vibeshed update` can:
+Files like `shared/`, `AGENTS.md`, `CLAUDE.md`, and `PRINCIPLES.md` are **framework-managed**. VibeShed records their original SHAs in `.vibeshed/manifest.json` so `vibeshed update` can:
 
 - Cleanly overwrite files you haven't touched.
 - Preserve files where only you changed them.
 - Three-way merge files that both you and the framework changed (delegated to `git merge-file`).
-- Preserve any content you add **outside** the `<!-- vibeshed:managed:start -->` / `<!-- vibeshed:managed:end -->` markers in `AGENTS.md`, `CLAUDE.md`, `.gitignore`, and `requirements.txt`.
+- Preserve any content you add **outside** the `<!-- vibeshed:managed:start -->` / `<!-- vibeshed:managed:end -->` markers in `AGENTS.md`, `CLAUDE.md`, `PRINCIPLES.md`, `.gitignore`, and `requirements.txt`.
 
 `registry.yaml`, `jobs/`, `state/`, `logs/`, and `.env` are never touched by `update`. They are 100% yours.
 

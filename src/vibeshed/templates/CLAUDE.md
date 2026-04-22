@@ -1,14 +1,14 @@
-<!-- vibeshed:managed:start v0.1.0 -->
+<!-- vibeshed:managed:start v0.1.1 -->
 # Claude Code Instructions for VibeShed
 
-You help users run existing automations and build new ones following the **Trigger → Action → Result** framework. Prefer the `vibeshed` CLI over raw shell whenever it's available — every CLI command below has been designed to give you a structured, predictable interface.
+You help users run existing automations and vibe-code new ones that follow the [vibeshed principles](PRINCIPLES.md): simple composable scripts, CLI passthrough params, success/failure exit codes, and enforced timeouts. Prefer the `vibeshed` CLI over raw shell whenever it's available — every command below has been designed to give you a structured, predictable interface.
 
 ## Quick Reference
 
 | Intent | Command |
 | --- | --- |
 | List all jobs | `vibeshed list` |
-| Run a job | `vibeshed run <slug>` |
+| Run a job | `vibeshed run <slug> -- <params>` |
 | Create a new job | `vibeshed new <slug>` |
 | Validate the repo | `vibeshed validate` |
 | Check recent logs | `vibeshed logs <slug> -n 50` |
@@ -23,9 +23,10 @@ You help users run existing automations and build new ones following the **Trigg
 When the user says "run {slug}":
 
 1. Confirm the job exists with `vibeshed list`.
-2. Check `dependencies.env_vars` in `registry.yaml` — ask the user for any missing values.
-3. Run with `vibeshed run <slug>`.
-4. If it fails, show the recent logs with `vibeshed logs <slug>`.
+2. Read `jobs/{slug}/sequence.md` — the **Inputs** section lists the params the script expects and any required env vars.
+3. Check `dependencies.env_vars` in `registry.yaml` — ask the user for any missing values.
+4. Run with `vibeshed run <slug> -- <params>`. Everything after `--` is forwarded to `scripts/main.py`.
+5. If it fails, show the recent logs with `vibeshed logs <slug>`.
 
 ### Create a New Job
 
@@ -33,23 +34,27 @@ When the user says "create job {name}":
 
 1. Generate a kebab-case slug from the name.
 2. Run `vibeshed new <slug>` to scaffold the folder.
-3. Ask for: description, what each step does, expected inputs/outputs, what result/notification they want.
+3. Ask for: description, expected params (name, type, required?), required env vars, what each step does, what result/notification they want.
 4. Update the entry in `registry.yaml` with the real description, tags, and `dependencies`.
-5. Fill in `jobs/{slug}/sequence.md` with the Action and Result sections.
-6. Implement `jobs/{slug}/scripts/main.py` (deterministic CLI entry point).
-   - For multi-step jobs, also create one script per step under `scripts/` and reference them in `sequence.md`.
-7. Run `vibeshed validate` to check the structure.
-8. Test with `vibeshed run <slug>`.
+5. Fill in `jobs/{slug}/sequence.md` with the Inputs, Action, and Result sections.
+6. Implement `jobs/{slug}/scripts/main.py`:
+   - Parse params with `argparse`.
+   - Exit `0` on success, non-zero on failure.
+   - Use `from shared import logging` — never `print()`.
+   - For multi-step jobs, split into scripts under `scripts/` and reference them in `sequence.md`.
+7. Set a realistic `timeout_minutes` in `jobs/{slug}/config.yaml` (2–3× expected runtime).
+8. Run `vibeshed validate` to check the structure.
+9. Test with `vibeshed run <slug> -- <params>`.
 
 ### Multi-Step Orchestration
 
 If `sequence.md` has multiple step scripts and you need to chain them with conditional logic:
 
-- Run each step directly: `JOB_SLUG=<slug> python jobs/<slug>/scripts/<step>.py`
+- Run each step directly: `JOB_SLUG=<slug> python jobs/<slug>/scripts/<step>.py <args>`
 - Pipe stdin/stdout between steps as documented in `sequence.md`.
 - Decide whether to skip steps based on previous outputs.
 
-If the job is a single straight-through pipeline, prefer `vibeshed run <slug>` — it executes `scripts/main.py` and handles logging and run tracking for you.
+If the job is a single straight-through pipeline, prefer `vibeshed run <slug> -- <params>` — it executes `scripts/main.py`, enforces the timeout, and records the run.
 
 ## Code Style
 
@@ -57,6 +62,7 @@ If the job is a single straight-through pipeline, prefer `vibeshed run <slug>` �
 - Document functions with docstrings.
 - Handle errors gracefully with try/except at the job level.
 - Use `from shared import logging` — never the stdlib `logging` directly, never `print()`.
+- Parse params with `argparse` so `vibeshed run <slug> -- --foo bar` works.
 
 ## sequence.md Skeleton
 
@@ -65,14 +71,19 @@ If the job is a single straight-through pipeline, prefer `vibeshed run <slug>` �
 
 [Brief description.]
 
-## Trigger
-[Cron / on-demand / event / hybrid.]
+## Inputs
+
+- Params (passed after `--` on `vibeshed run`):
+  - `--date` (required) — ISO date, e.g. `2026-04-19`.
+  - `--user` (optional) — target user slug.
+- Env vars:
+  - `SOME_API_KEY` — required.
 
 ## Action
 
 ### Step 1: [Description]
 Run: `scripts/{script_name}.py`
-- Input: [stdin / args / env / files]
+- Input: [params / env / stdin / files]
 - Output: [JSON / text / files]
 
 ## Result
@@ -84,18 +95,19 @@ Run: `scripts/{script_name}.py`
 - [Retry, alert, cleanup.]
 
 ## Notes
-[Edge cases, special considerations.]
+[Edge cases, special considerations, timeout reasoning.]
 ```
 
 ## Testing a New Job
 
 Before declaring a job complete:
 
-1. `vibeshed run <slug>` — verify it succeeds.
+1. `vibeshed run <slug> -- <params>` — verify it succeeds.
 2. `vibeshed logs <slug>` — verify the log file was created.
 3. Inspect `logs/<slug>/runs.json` — confirm a SUCCESS entry exists.
 4. Check that state was updated (if applicable).
 5. Confirm notifications were sent (if configured).
+6. Verify timeout behavior: set a tight `timeout_minutes`, force a slow run, and confirm FAILURE is recorded with `error` mentioning `timeout`.
 <!-- vibeshed:managed:end -->
 
 <!-- Add your project-specific Claude Code instructions below this line. They will be preserved across `vibeshed update`. -->
