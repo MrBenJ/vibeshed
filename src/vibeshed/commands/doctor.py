@@ -9,7 +9,13 @@ import sys
 import typer
 
 from vibeshed import __version__, manifest as manifest_mod
-from vibeshed.commands._common import find_project_root, load_registry
+from vibeshed.commands._common import (
+    VENV_PYTHON_ENV,
+    find_project_root,
+    load_registry,
+    project_venv_python,
+    resolve_python_interpreter,
+)
 
 
 def doctor() -> None:
@@ -44,6 +50,30 @@ def doctor() -> None:
     else:
         typer.secho(
             f"  ✓ Framework version recorded: {manifest.framework_version}",
+            fg=typer.colors.GREEN,
+        )
+
+    requirements_path = project_root / "requirements.txt"
+    venv_python = project_venv_python(project_root)
+    override = os.getenv(VENV_PYTHON_ENV)
+    interpreter = resolve_python_interpreter(project_root)
+    if override:
+        typer.secho(
+            f"  ✓ Using {VENV_PYTHON_ENV}={override} to run jobs", fg=typer.colors.GREEN
+        )
+    elif venv_python is not None:
+        typer.secho(f"  ✓ Project .venv detected: {venv_python}", fg=typer.colors.GREEN)
+    elif requirements_path.exists():
+        typer.secho(
+            "  ⚠ requirements.txt exists but no .venv was found. Jobs will run with "
+            f"{interpreter}, which likely does not see project dependencies. "
+            "Create one with: uv venv && uv pip install -r requirements.txt "
+            f"(or set {VENV_PYTHON_ENV} to an interpreter that has them).",
+            fg=typer.colors.YELLOW,
+        )
+    else:
+        typer.secho(
+            f"  ✓ No requirements.txt; jobs will run with {interpreter}",
             fg=typer.colors.GREEN,
         )
 

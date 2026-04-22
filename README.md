@@ -15,6 +15,7 @@ pipx install vibeshed
 ```sh
 vibeshed init my-automations
 cd my-automations
+uv venv && uv pip install -r requirements.txt   # or: python -m venv .venv && .venv/bin/pip install -r requirements.txt
 vibeshed new daily-briefing
 # edit jobs/daily-briefing/scripts/main.py
 vibeshed run daily-briefing -- --date 2026-04-19
@@ -22,6 +23,16 @@ vibeshed logs daily-briefing
 ```
 
 Everything after `--` is forwarded to `scripts/main.py`. Parse params with `argparse` (the template scaffolds this for you).
+
+### Project interpreter
+
+`vibeshed run` spawns `scripts/main.py` with the project's own Python so jobs see the deps in `requirements.txt`. Resolution order:
+
+1. `$VIBESHED_PYTHON` if set — explicit escape hatch for pinned interpreters.
+2. `<project>/.venv/bin/python` if it exists — the default, created by the `uv venv` step above.
+3. The interpreter running the CLI (e.g. the `pipx` env) — fallback for projects with no deps.
+
+Run `vibeshed doctor` to see which interpreter will be used and get warned when `requirements.txt` has no matching `.venv`.
 
 ## What it means to be one with the vibeshed
 

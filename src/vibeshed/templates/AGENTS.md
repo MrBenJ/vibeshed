@@ -46,6 +46,16 @@ vibeshed run <slug> -- --param1 value --param2 value
 
 Everything after `--` is forwarded verbatim to `scripts/main.py`. The CLI sets `JOB_SLUG`, captures logs, enforces `timeout_minutes`, and records the outcome in `logs/<slug>/runs.json`. If you must run a single step manually, set `JOB_SLUG=<slug>` so logging routes correctly.
 
+### Project interpreter
+
+Jobs are spawned with `<project>/.venv/bin/python` when that file exists (so scripts see the deps listed in `requirements.txt`), otherwise with the CLI's own interpreter. On a new checkout, run:
+
+```sh
+uv venv && uv pip install -r requirements.txt
+```
+
+Set `VIBESHED_PYTHON` to override. `vibeshed doctor` surfaces the effective interpreter and warns when `requirements.txt` is present but `.venv` is not.
+
 ## Environment Variables
 
 - Check `dependencies.env_vars` in `registry.yaml` before running a job.

@@ -3,6 +3,17 @@
 
 You help users run existing automations and vibe-code new ones that follow the [vibeshed principles](PRINCIPLES.md): simple composable scripts, CLI passthrough params, success/failure exit codes, and enforced timeouts. Prefer the `vibeshed` CLI over raw shell whenever it's available — every command below has been designed to give you a structured, predictable interface.
 
+## First-time setup
+
+`vibeshed run` spawns `scripts/main.py` with the project's own Python so jobs can `import requests`, `yaml`, and anything else in `requirements.txt`. On a fresh clone, create the project `.venv` before running any job:
+
+```sh
+uv venv && uv pip install -r requirements.txt
+# or: python -m venv .venv && .venv/bin/pip install -r requirements.txt
+```
+
+If `.venv/bin/python` is missing, the CLI falls back to whichever interpreter it's installed under (often the `pipx` env), which typically does not have the project deps. `vibeshed doctor` warns in that case. To pin a different interpreter, set `VIBESHED_PYTHON=/abs/path/to/python`.
+
 ## Quick Reference
 
 | Intent | Command |
