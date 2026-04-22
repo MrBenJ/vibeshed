@@ -1,0 +1,17 @@
+{
+  "name": "vibeshed",
+  "description": "Run VibeShed automations from Claude Code with /vibeshed:run.",
+  "version": "0.1.0",
+  "author": {
+    "name": "VibeShed"
+  },
+  "homepage": "https://github.com/vibeshed/vibeshed",
+  "repository": "https://github.com/vibeshed/vibeshed",
+  "license": "MIT",
+  "keywords": [
+    "vibeshed",
+    "automation",
+    "agents",
+    "cli"
+  ]
+}

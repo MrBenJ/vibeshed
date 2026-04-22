@@ -10,6 +10,23 @@ VibeShed is for **vibe-coding automations** with an agent in the loop. Every job
 pipx install vibeshed
 ```
 
+Asking an agent to set this up for you? Point it at [`AGENTS_INSTALL_INSTRUCTIONS.md`](AGENTS_INSTALL_INSTRUCTIONS.md) — a step-by-step walkthrough that installs the CLI, scaffolds a project, and wires up the Claude Code plugin.
+
+## Claude Code plugin
+
+The [`plugin/`](plugin/) directory ships a Claude Code plugin with two commands:
+
+- `/vibeshed:set-project <abs-path>` — pin which VibeShed project to target.
+- `/vibeshed:run <slug> [-- --key value ...]` — run a job by slug from anywhere.
+
+Install it inside Claude Code:
+
+```
+/plugin install /absolute/path/to/vibeshed/plugin
+```
+
+See [`plugin/README.md`](plugin/README.md) for details.
+
 ## Quickstart
 
 ```sh
