@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vibeshed"
-version = "0.2.1"
+version = "0.2.2"
 description = "Vibe Coding Framework for Personal Automations — agent-agnostic CLI for vibe-coded jobs with passthrough params, exit-code results, and enforced timeouts."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -45,9 +45,6 @@ Issues = "https://github.com/vibeshed/vibeshed/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vibeshed"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/vibeshed/templates" = "vibeshed/templates"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
