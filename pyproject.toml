@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vibeshed"
-version = "0.2.0"
+version = "0.2.1"
 description = "Vibe Coding Framework for Personal Automations — agent-agnostic CLI for vibe-coded jobs with passthrough params, exit-code results, and enforced timeouts."
 readme = "README.md"
 license = { file = "LICENSE" }

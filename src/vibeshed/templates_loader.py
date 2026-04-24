@@ -66,8 +66,14 @@ def _resolve(rel_path: str) -> Any:
     return node
 
 
+_IGNORED_DIRS = frozenset({"__pycache__"})
+_IGNORED_SUFFIXES = (".pyc", ".pyo")
+
+
 def _walk_files(node: Any, prefix: str) -> Iterator[Tuple[str, str]]:
     for child in sorted(node.iterdir(), key=lambda c: c.name):
+        if child.name in _IGNORED_DIRS or child.name.endswith(_IGNORED_SUFFIXES):
+            continue
         rel = f"{prefix}{child.name}"
         if child.is_file():
             yield rel, child.read_text(encoding="utf-8")
