@@ -74,6 +74,21 @@ def test_run_unknown_slug(initialized_project: Path, runner: CliRunner) -> None:
     assert "not registered" in result.output.lower()
 
 
+def test_template_walker_skips_pycache(tmp_path: Path) -> None:
+    from vibeshed.templates_loader import _walk_files
+
+    (tmp_path / "main.py").write_text("print('hi')\n", encoding="utf-8")
+    pycache = tmp_path / "__pycache__"
+    pycache.mkdir()
+    # Realistic .pyc header is binary and would crash a UTF-8 read.
+    (pycache / "main.cpython-312.pyc").write_bytes(b"\xcb\x0d\x0d\x0a\x00\x00")
+    (tmp_path / "stale.pyc").write_bytes(b"\xcb\x0d\x0d\x0a")
+    (tmp_path / "stale.pyo").write_bytes(b"\xcb\x0d\x0d\x0a")
+
+    rels = [rel for rel, _ in _walk_files(tmp_path, prefix="")]
+    assert rels == ["main.py"]
+
+
 def test_run_forwards_passthrough_args(
     initialized_project: Path, runner: CliRunner
 ) -> None:
